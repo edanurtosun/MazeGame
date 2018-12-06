@@ -1,0 +1,366 @@
+//Edanur TOSUN & Merve TAFRALI
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define MAXDEGER 106
+#define STACK_INIT_SIZE 10000
+int matris[MAXDEGER][MAXDEGER];
+struct node* m[MAXDEGER][MAXDEGER];
+struct node
+{
+    int data;
+    struct node* sag;
+    struct node* sol;
+    struct node* ust;
+    struct node* alt;
+};
+/*
+    veri ekleme
+*/
+struct node* nnode(struct node* head)
+{
+
+    struct node* nnnode = (struct node*)malloc(sizeof(struct node));
+    nnnode->data = head;
+    nnnode->ust = NULL;
+    nnnode->sag = NULL;
+    nnnode->sol = NULL;
+    nnnode->alt = NULL;
+
+
+    return nnnode;
+
+};
+struct ko
+{
+    int x;
+    int y;
+};
+
+struct stack
+{
+    struct ko arr[STACK_INIT_SIZE];
+    int top;
+    int base;
+
+};
+int pop(struct stack *psk,struct ko *pitem)
+{
+    if(psk->top==psk->base)
+        return -1;
+    *pitem=psk->arr[--psk->top];
+    return 0;
+
+
+}
+int push(struct stack *psk,struct ko item)
+{
+    if(psk->top==STACK_INIT_SIZE-1){
+        printf("Yigin doldu!");
+        return -1;
+    }
+    psk->arr[psk->top]=item;
+    psk->top++;
+    return 0;
+
+}
+
+
+
+void dolink(int matris[MAXDEGER][MAXDEGER],struct node* m[MAXDEGER][MAXDEGER],int n)
+{
+    int i,j;
+    //adresleri tutan pointer
+    for (i=0; i<n; i++)
+    {
+        for (j=0; j<n; j++)
+        {
+            m[i][j] = nnode(matris[i][j]);
+        }
+    }
+    for (i=0; i<n; i++)
+    {
+        for (j=0; j<n; j++)
+        {
+            if ( i>0 ) //i kenarda olmasýn
+            {
+                m[i][j]->ust = m[i-1][j];
+                m[i-1][j]->alt = m[i][j];
+            }
+            if ( j<n-1 ) //boyuttan kucuk yani kenara gelmemeli
+            {
+                m[i][j]->sag = m[i][j+1];
+                m[i][j+1]->sol = m[i][j];
+            }
+            if ( i<n-1 )
+            {
+                m[i][j]->alt = m[i+1][j];
+                m[i+1][j]->ust = m[i][j];
+            }
+            if ( j>0 )
+            {
+                m[i][j]->sol = m[i][j-1];
+                m[i][j-1]->sag = m[i][j];
+            }
+        }
+    }
+
+
+
+
+
+}
+void ekranayaz(int matris[MAXDEGER][MAXDEGER],int boyut,int cikis1,int cikis2)
+{
+    int i,j;
+    matris[cikis1][cikis2]=2;
+
+    for(i=0; i<boyut; i++)
+    {
+
+        for(j=0; j<boyut; j++)
+        {
+            if(matris[i][j]==2)
+            {
+                printf("1 ");
+            }
+            else
+            {
+                printf("0 ");
+            }
+        }
+        printf("\n");
+
+    }
+
+}
+int main()
+{
+
+    int boyut;
+    int i,j;
+    int girisI,girisJ;
+    int cikisI,cikisJ;
+    printf("Matrisin boyutunu giriniz : ");
+    scanf("%d",&boyut);
+    if(boyut > MAXDEGER)
+    {
+        printf("Boyutun alabilecegi maximum degeri astiniz!!! (106)");
+        return ;
+
+    }
+    srand((unsigned)time(NULL) ) ;
+    for(i=0; i<boyut; i++)
+    {
+
+        for(j=0; j<boyut; j++)
+        {
+
+            matris[i][j] = rand()%2;
+
+        }
+
+    }
+
+    for(i=0; i<boyut; i++)
+    {
+
+        for(j=0; j<boyut; j++)
+        {
+
+            printf("%d ",matris[i][j]);
+
+        }
+        printf("\n");
+
+    }
+
+
+
+    //giris kapisinin kontrolunu yapıyoruz
+      printf("Giris kapisini giriniz : ");
+    scanf("%d%d",&girisI,&girisJ);
+
+    if(girisI > boyut - 1)
+    {
+        printf("Giris kapinizin degeri boyuttan fazla!!!");
+        return ;
+    }
+    if(girisI != 0 && girisJ != 0 && girisI != boyut-1 && girisJ != boyut-1)
+    {
+        printf("Giris kapinizi hatali girdiniz!!!");
+        return ;
+    }
+
+    if(matris[girisI][girisJ]!=1)
+    {
+        printf("Giris kapinizi hatali girdiniz!!!");
+        return ;
+    }
+
+    printf("Cikis kapisini giriniz : ");
+    scanf("%d%d",&cikisI,&cikisJ);
+
+
+    if(cikisI!=boyut - 1 && boyut - 1 != cikisJ && cikisI!=0 && boyut - 1 != 0)
+    {
+        printf("Hatali bir cikis degeri girdiniz!!!");
+        return ;
+    }
+
+    struct node* head = NULL;
+    struct node* pmatris[MAXDEGER][MAXDEGER]= {NULL};
+    dolink(matris,pmatris,boyut);
+    int k=girisI,l=girisJ;
+    struct stack sk;
+    struct ko item;
+    sk.top=0;
+    sk.base=0;
+    while(1)
+    {
+        if (pmatris[k][l]->data==1)
+        {
+            if(pmatris[k][l]->sag->data==1)
+            {
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                l++;
+            }
+            else if(pmatris[k][l]->alt->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                k++;
+            }
+            else if(pmatris[k][l]->sol->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                l--;
+            }
+            else if(pmatris[k][l]->ust->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                k--;
+            }
+            else
+            {
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+            }
+
+
+        }
+        else
+        {
+            if(pmatris[k][l]->sag->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                l++;
+            }
+            else if(pmatris[k][l]->alt->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                k++;
+            }
+            else if(pmatris[k][l]->sol->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                l--;
+            }
+            else if(pmatris[k][l]->ust->data==1)
+            {
+
+                item.x=k;
+                item.y=l;
+                if(0>push(&sk,item))
+                    return -1;
+
+                pmatris[k][l]->data=2;
+                matris[k][l]=2;
+                k--;
+            }
+            else
+            {
+                if(0>pop(&sk,&item))
+                {
+                    printf("Tabana ulasildi!\n");
+                    return -1;
+                }
+                k=item.x;
+                l=item.y;
+
+
+            }
+
+        }
+        if(k==cikisI && l==cikisJ)
+        {
+            printf("labirent[%d][%d]\n",k,l);
+            int n;
+            for(n=0; n<100; n++)
+            {
+                if(0>pop(&sk,&item))
+                {
+                    printf("Bitti! Tabandasiniz!\n");
+                    ekranayaz(matris,boyut,cikisI,cikisJ);
+                    return -1;
+                }
+                printf("labirent[%d][%d]\n",item.x,item.y);
+
+            }
+        }
+
+
+        continue;
+
+    }
+
+
+    return 0;
+}
+
+
+
+
